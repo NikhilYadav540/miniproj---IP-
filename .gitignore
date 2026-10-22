@@ -1,0 +1,6 @@
+out/
+mysql_data/
+*.class
+
+.cursor/
+.zcodeignore

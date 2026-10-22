@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<section id="loginView" class="login">
+  <form class="card login-card" onsubmit="login(); return false;">
+    <div class="login-logo">📚</div>
+    <h1>Smart Library</h1>
+    <p class="muted">Welcome back! Sign in to your account</p>
+    <label class="sr-only" for="email">Email address</label>
+    <input id="email" type="email" placeholder="Email address" value="admin@library.com" autocomplete="username" required>
+    <label class="sr-only" for="password">Password</label>
+    <input id="password" type="password" placeholder="Password" value="admin123" autocomplete="current-password" required>
+    <p id="loginError" class="error"></p>
+    <button class="btn wide" type="submit">Sign In</button>
+    <p class="muted small">New here? <a href="#" onclick="openRegister(); return false;">Create an account</a></p>
+    <p class="muted tiny">Demo: admin@library.com / admin123 · nikhil@college.edu / pass123</p>
+  </form>
+</section>
+
+<!-- ============ MAIN APP (shown after login) ============ -->
+<div id="appView" class="app" hidden>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-icon">📚</span>Smart Library</div>
+    <nav id="sideNav">
+      <button data-page="dashboard">📊 Dashboard</button>
+      <button data-page="books">📚 Books</button>
+      <button data-page="mybooks">📖 My Books</button>
+      <button data-page="members" class="admin-only">👥 Members</button>
+      <button data-page="issue" class="admin-only">🔄 Borrowed Books</button>
+      <button data-page="settings">⚙️ Settings</button>
+    </nav>
+    <div class="side-user">
+      <div id="sideAvatar" class="avatar"></div>
+      <div class="side-user-info">
+        <div id="sideName" class="side-name"></div>
+        <div id="sideRole" class="side-role"></div>
+      </div>
+      <button class="logout" onclick="logout()" title="Log Out">⏻</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="topbar-right">
+        <div class="search-wrap"><span class="s-icon">🔍</span>
+          <input id="globalSearch" placeholder="Search books...">
+        </div>
+        <button type="button" id="bell" class="bell" title="Overdue books" onclick="openOverdue()">🔔<span id="bellDot" class="dot" hidden></span></button>
+        <div id="topAvatar" class="avatar"></div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="page">
+        <div id="stats" class="stats"></div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Recently Added Books</h3>
+            <div class="table-wrap"><table id="recentTable"></table></div>
+          </div>
+          <div class="card">
+            <h3>Borrowed Books</h3>
+            <div class="table-wrap"><table id="dashTxnTable"></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Books: search + category pills + table -->
+      <section id="books" class="page" hidden>
+        <div class="toolbar">
+          <div class="search-wrap grow"><span class="s-icon">🔍</span>
+            <input id="search" type="search" placeholder="Search by title or author">
+          </div>
+          <button class="btn admin-only" onclick="openBook()">+ Add New Book</button>
+        </div>
+        <div id="catPills" class="pills"></div>
+        <div class="card table-wrap"><table id="bookTable"></table></div>
+      </section>
+
+      <!-- My Books (member's own loans) -->
+      <section id="mybooks" class="page" hidden>
+        <div class="card table-wrap"><table id="myBooksTable"></table></div>
+      </section>
+
+      <!-- Members (admin) -->
+      <section id="members" class="page" hidden>
+        <div class="toolbar">
+          <h2 class="grow">Members List</h2>
+          <button class="btn" onclick="openRegister()">+ Add Member</button>
+        </div>
+        <div class="card table-wrap"><table id="memberTable"></table></div>
+      </section>
+
+      <!-- Borrowed books: issue & return (admin) -->
+      <section id="issue" class="page" hidden>
+        <div class="card form-row">
+          <select id="issueBook"></select>
+          <select id="issueMember"></select>
+          <button class="btn" onclick="issueBook()">Issue Book</button>
+        </div>
+        <div class="card table-wrap"><table id="txnTable"></table></div>
+      </section>
+
+      <!-- Settings -->
+      <section id="settings" class="page" hidden>
+        <div class="card settings-card">
+          <div id="setAvatar" class="avatar big"></div>
+          <div class="grow">
+            <div id="setName" class="set-name"></div>
+            <div id="setEmail" class="muted"></div>
+            <div id="setRole" class="badge" style="margin-top:8px"></div>
+          </div>
+          <button class="btn secondary" onclick="logout()">Sign Out</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ POP-UP: add / edit book ============ -->
+<dialog id="bookDialog">
+  <form onsubmit="saveBook(); return false;">
+    <h3 id="bookDialogTitle">Add Book</h3>
+    <label>Title<input id="bTitle" placeholder="Book title" required></label>
+    <label>Author<input id="bAuthor" placeholder="Author name" required></label>
+    <label>ISBN<input id="bIsbn" placeholder="ISBN number"></label>
+    <label>Category<select id="bCategory"></select></label>
+    <label>Copies<input id="bCopies" type="number" min="1" placeholder="Number of copies" required></label>
+    <div class="actions">
+      <button class="btn secondary" type="button" onclick="bookDialog.close()">Cancel</button>
+      <button class="btn" type="submit">Save Book</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ POP-UP: register ============ -->
+<dialog id="registerDialog">
+  <form onsubmit="register(); return false;">
+    <h3 id="registerTitle">Create Account</h3>
+    <label>Full name<input id="rName" placeholder="Your full name" required></label>
+    <label>Email<input id="rEmail" type="email" placeholder="Email address" required></label>
+    <label>Password<input id="rPassword" type="password" placeholder="At least 4 characters" minlength="4" required></label>
+    <p id="registerError" class="error"></p>
+    <div class="actions">
+      <button class="btn secondary" type="button" onclick="registerDialog.close()">Cancel</button>
+      <button class="btn" type="submit">Create Account</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
